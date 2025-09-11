@@ -85,8 +85,14 @@ export const Navbar = () => {
 
       {/* Desktop Auth */}
       <div>
-        { user ?}
-        <button onClick={signInWithGitHub}>Sign In With Github</button>
+        { user ? (
+          <div>
+            <span> {displayName}</span>
+            <button onClick={signOut}> Sign Out</button>
+          </div>
+        ) : (
+          <button onClick={signInWithGitHub}>Sign In With GitHub</button>
+        )}
       </div>
 
       {/* Mobile Menu */}

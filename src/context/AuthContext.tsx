@@ -17,13 +17,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     supabase.auth.getSession().then(({data: {session}})=>{
         setUser(session?.user ?? null)
     })
+
+    const {data: listener} = supabase.auth.onAuthStateChange((_, session)=>{
+      setUser(session?.user ?? null)
+    })
+
+    return () =>{
+      listener.subscription.unsubscribe();
+    }
   },[])
 
   const signInWithGitHub = () => {
     supabase.auth.signInWithOAuth({ provider: "github" });
   };
 
-  const signOut = () => {};
+  const signOut = () => {
+    supabase.auth.signOut()
+  };
 
   return (
     <AuthContext.Provider value={{ user, signInWithGitHub, signOut }}>
