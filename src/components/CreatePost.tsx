@@ -8,16 +8,21 @@ interface PostInput {
 }
 
 const createPost = async (post: PostInput, imageFile: File) => {
-    
-    const filePath = `${post.title}-${Date.now()}-${imageFile.name}`
-    
-    const {error: uploadError} = await supabase.storage.from("post-images").upload(filePath, imageFile)
-    
-    if (uploadError) throw new Error(uploadError.message);
+  const filePath = `${post.title}-${Date.now()}-${imageFile.name}`;
 
-    const {data: publicURLData} = supabase.storage.from("post-images").getPublicUrl(filePath)
-    
-    const { data, error } = await supabase.from("posts").insert({...post, image_url: publicURLData.publicUrl});
+  const { error: uploadError } = await supabase.storage
+    .from("post-images")
+    .upload(filePath, imageFile);
+
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { data: publicURLData } = supabase.storage
+    .from("post-images")
+    .getPublicUrl(filePath);
+
+  const { data, error } = await supabase
+    .from("posts")
+    .insert({ ...post, image_url: publicURLData.publicUrl });
 
   if (error) throw new Error(error.message);
 
@@ -29,7 +34,7 @@ export const CreatePost = () => {
   const [content, setContent] = useState<string>("");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
-  const { mutate } = useMutation({
+  const { mutate, isPending, isError } = useMutation({
     mutationFn: (data: { post: PostInput; imageFile: File }) => {
       return createPost(data.post, data.imageFile);
     },
@@ -48,11 +53,11 @@ export const CreatePost = () => {
   };
 
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label htmlFor=""> Title</label>
+    <form onSubmit={handleSubmit} className="max-w-2xl mx-auto space-y-4">
+      <div>
+          <label htmlFor="title" className="block mb-2 font-medium"> Title</label>
           <input
+            className="w-full border border-white/10 bg-transparent p-2 rounded"
             type="text"
             id="title"
             required
@@ -60,8 +65,9 @@ export const CreatePost = () => {
           />
         </div>
         <div>
-          <label htmlFor=""> Content</label>
+          <label htmlFor="content" className="block mb-2 font-medium"> Content</label>
           <textarea
+            className="w-full border border-white/10 bg-transparent p-2 rounded"
             id="content"
             required
             rows={5}
@@ -70,8 +76,9 @@ export const CreatePost = () => {
         </div>
 
         <div>
-          <label htmlFor=""> Upload Image</label>
+          <label htmlFor="image" className="block mb-2 font-medium"> Upload Image</label>
           <input
+            className="w-full text-gray-200"
             type="file"
             id="image"
             required
@@ -79,9 +86,9 @@ export const CreatePost = () => {
             onChange={handleFileChange}
           />
         </div>
+        <button type="submit" className="bg-purple-500 text-white px-4 py-2 rounded cursor-pointer"> { isPending ? "Creating..." : "Create Post"}</button>
 
-        <button type="submit"> Create Post</button>
-      </form>
-    </div>
+        {isError && <p className="text-red-500"> Error creating post.</p>}
+    </form>
   );
 };
