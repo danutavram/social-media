@@ -8,10 +8,37 @@ interface Props {
 }
 
 const vote = async (voteValue: number, postId: number, userId: string) => {
-  const {error} = await supabase
+  const { data: existingVote } = await supabase
     .from("votes")
-    .insert({ post_id: postId, user_id: userId, vote: voteValue });
-    if(error) throw new Error(error.message)
+    .select("*")
+    .eq("post_id", postId)
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (existingVote) {
+    // Liked -> 0, Like -> -1
+    if (existingVote.vote === voteValue) {
+      const { error } = await supabase
+        .from("votes")
+        .delete()
+        .eq("id", existingVote.id);
+
+      if (error) throw new Error(error.message);
+    } else {
+      const { error } = await supabase
+        .from("votes")
+        .update({ vote: voteValue })
+        .eq("id", existingVote.id);
+
+      if(error) throw new Error(error.message);
+    }
+  } else {
+      const { error } = await supabase
+        .from("votes")
+        .insert({ post_id: postId, user_id: userId, vote: voteValue });
+      if (error) throw new Error(error.message);
+  }
+
 };
 
 export const LikeButton = ({ postId }: Props) => {
