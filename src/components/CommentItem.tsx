@@ -36,6 +36,7 @@ const createReply = async (
 export const CommentItem = ({ comment, postId }: Props) => {
   const [showReply, setShowReply] = useState<boolean>(false);
   const [replyText, setReplyText] = useState<string>("");
+  const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -52,7 +53,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["comments", postId] });
       setReplyText("");
-      setShowReply(false)
+      setShowReply(false);
     },
   });
 
@@ -64,15 +65,22 @@ export const CommentItem = ({ comment, postId }: Props) => {
   };
 
   return (
-    <div>
-      <div>
-        <div>
+    <div className="pl-4 border-l border-white/10">
+      <div className="mb-2">
+        <div className="flex items-center space-x-2">
           {/* Display the commenters username */}
-          <span>{comment.author}</span>
-          <span>{new Date(comment.created_at).toLocaleString()}</span>
+          <span className="text-sm font-bold text-blue-400">
+            {comment.author}
+          </span>
+          <span className="text-xs text-gray-500">
+            {new Date(comment.created_at).toLocaleString()}
+          </span>
         </div>
-        <p>{comment.content}</p>
-        <button onClick={() => setShowReply((prev) => !prev)}>
+        <p className="text-gray-300">{comment.content}</p>
+        <button
+          className="text-blue-500 text-sm mt-1 cursor-pointer hover:font-semibold"
+          onClick={() => setShowReply((prev) => !prev)}
+        >
           {" "}
           {showReply ? "Cancel" : "Reply"}{" "}
         </button>
@@ -89,7 +97,7 @@ export const CommentItem = ({ comment, postId }: Props) => {
           />
           <button
             type="submit"
-            className="mt-2 bg-purple-500 text-white px-4 py-2 rounded cursor-pointer"
+            className="mt-1 bg-blue-500 text-white px-3 py-1 rounded cursor-pointer"
           >
             {isPending ? "Posting" : "Post Reply"}
           </button>
@@ -97,6 +105,54 @@ export const CommentItem = ({ comment, postId }: Props) => {
             <p className="text-red-500 mt-2"> Error posting reply.</p>
           )}
         </form>
+      )}
+
+      {comment.children && comment.children.length > 0 && (
+        <div>
+          <button
+            onClick={() => setIsCollapsed((prev) => !prev)}
+            title={isCollapsed ? "Hide Replies" : "Show Replies"}
+          >
+            {isCollapsed ? (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-4 h-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            ) : (
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth={2}
+                stroke="currentColor"
+                className="w-4 h-4"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5 15l7-7 7 7"
+                />
+              </svg>
+            )}
+          </button>
+          {!isCollapsed && (
+            <div className="space-y-2">
+                {comment.children.map((child, key)=>(
+                    <CommentItem key={key} comment={child} postId={postId} />
+                ))}
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

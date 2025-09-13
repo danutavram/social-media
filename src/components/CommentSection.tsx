@@ -154,7 +154,7 @@ export const CommentSection = ({ postId }: Props) => {
       )}
 
       {/* Comments Display Section */}
-      <div>{commentTree.map((comment, key)=>(
+      <div className="space-y-4">{commentTree.map((comment, key)=>(
         <CommentItem key={key} comment={comment} postId={postId} />
       ))}</div>
     </div>
