@@ -1,6 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../supabase-client";
-import { PostDetail } from "./PostDetail";
 import { useAuth } from "../context/AuthContext";
 
 interface Props {
